@@ -1,7 +1,6 @@
 #### packages ####
 library(ismev)
 library(evd)
-library(fExtremes)
 library(stringr)
 library(dplyr)
 
@@ -35,8 +34,7 @@ maxA1 <- df %>% group_by(year) %>% summarise(Max = max(station)) %>% pull()
 length(maxA1)
 # Nombre de mesures par an
 eff1 <- df %>% group_by(year) %>% count() %>% pull()
-
-# Représentation graphique
+# Représentation graphique des max
 plot(1961:2012, maxA1, xlab = "Années", ylab = "Hauteur mesurée",
      main = "Hauteur maximales des vagues par années")
 
@@ -46,7 +44,7 @@ maxA2 <- df %>% group_by(year, month, .add = TRUE) %>%
 length(maxA2)
 # Nombre de mesures par mois
 eff2 <- df %>% group_by(year, month, .add = TRUE) %>% count() %>% pull()
-
+# Représentation graphique des max
 plot(maxA2, xlab = "Mois", ylab = "Hauteur mesurée",
      main = "Hauteur maximales des vagues par mois")
 
@@ -61,7 +59,7 @@ maxA1_GEV1$nllh
 # ajout de tendance à discuter
 mat1 <- matrix(c(1:52, (1:52)^2), ncol = 2)
 head(mat1)
-maxA1_GEV0 <- gev.fit(maxA1, ydat = mat1, mul = 1:2)
+maxA1_GEV0 <- gev.fit(maxA1, ydat = mat1, mul = 1)
 maxA1_GEV0$mle
 maxA1_GEV0$nllh
 D1 <- - 2 * (maxA1_GEV0$nllh - maxA1_GEV1$nllh)
@@ -273,8 +271,8 @@ maxB1_GEV0 <- gev.fit(maxB1, ydat = mat1, mul = 1:2)
 maxB1_GEV0$mle
 maxB1_GEV0$nllh
 D3 <- - 2 * (maxB1_GEV0$nllh - maxB1_GEV1$nllh)
-D3 <= qchisq(0.95, df = 1)
-# Rejet de la tendence
+D3 <= qchisq(0.99, df = 1)
+# Rejet de la tendance
 
 # Paramètres
 mu3 <- maxB1_GEV1$mle[1]
@@ -291,7 +289,7 @@ maxB1_gum <- gum.fit(maxB1)
 gum.diag(maxB1_gum) # Retrun level et Quantile plot moins convaincants
 
 # Comparaison des modèles : Test gamma = 0
-2 * (maxB1_GEV1$nllh - maxB1_gum$nllh) <= qchisq(0.95, 1)
+- 2 * (maxB1_GEV1$nllh - maxB1_gum$nllh) <= qchisq(0.95, 1)
 # On rejette gamma = 0
 
 # Max mensuels
@@ -323,7 +321,7 @@ maxB2_gum <- gum.fit(maxB2)
 gum.diag(maxB2_gum) # Retrun level et Quantile plot moins convaincants
 
 # Comparaison des modèles : Test gamma = 0
-2 * (maxB2_GEV1$nllh - maxB2_gum$nllh) <= qchisq(0.95, 1)
+- 2 * (maxB2_GEV1$nllh - maxB2_gum$nllh) <= qchisq(0.95, 1)
 # On rejette gamma = 0
 
 #### Niveaux de retour ####
@@ -398,10 +396,10 @@ chiplot(cbind(SA, SB))
 # plot 2 chi_bar : plus petit que 1 (confirme l'indépendance asymptotique)
 
 #### Tranformation des données en Fréchet 1 ####
-SA_F <- evd::qgev(evd::pgev(SA,loc = 3.9868599, scale = 1.1734179 ,
+SA_F <- qgev(pgev(SA,loc = 3.9868599, scale = 1.1734179 ,
                             shape = -0.1526229),
                   loc = 1, shape = 1, scale = 1)
-SB_F <- evd::qgev(evd::pgev(SB, loc = 1.43213305, scale = 0.71594773,
+SB_F <- qgev(pgev(SB, loc = 1.43213305, scale = 0.71594773,
                             shape = -0.02667831),
                   loc = 1, shape = 1, scale = 1)
 plot(SA_F, SB_F)
@@ -412,6 +410,16 @@ abvnonpar(data = cbind(maxA2, maxB2), plot = TRUE, col = "red")
 
 abvnonpar(data = cbind(maxA2, maxB2), plot = FALSE) * 2
 # theta est proche de 2 donc on à bien de l'indépendance asymptotique.
+# Indépendance assez logique puisque stations distantes d'environ 264km
 
 # Fit d'un modèle
 fbvevd(cbind(maxA2, maxB2), model = "alog")
+MGEV1 <- fbvevd(cbind(maxA2, maxB2), model = "log") # meilleur AIC
+MGEV1
+
+#### Recherche de z_p tq P(X > z_p | Y > 8) = p
+# X=SB et Y=SA
+
+# On suppose qu'on a l'indépendance asymptotique, donc p ~ G^-1_X((1-p)^n)
+quant_cond(MGEV1, 8, 10^-4, 624, dep = FALSE, cond.mar2 = FALSE)
+
