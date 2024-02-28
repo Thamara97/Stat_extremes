@@ -179,30 +179,6 @@ c(quant1000$estimate[1] - 1.96 * quant1000$std.err[1],
 
 # Les quantiles des max mensuels sont plus élevés que ceux des max annuels
 
-############################### AJUSTELEMENT GPD ###############################
-
-# Choix du seuil
-# mrlplot(SA)  # trop lourd à faire tourner, alternative nécessaire ?
-
-# on choisit le nombre r d'excès souhaité
-r1 <- 52 # autant que d'années
-r2 <- 12 * r1 # autant que de mois
-
-# seuils correspondant
-u1 <- SA[order(SA, decreasing = TRUE)[1:(r1 + 1)]][(r1 + 1)]
-u2 <- SA[order(SA, decreasing = TRUE)[1:(r2 + 1)]][(r2 + 1)]
-
-# clusters à envisager puisqu'il y a dépendance entre les données
-GPD1 <- fpot(SA, u1, std.err = TRUE, cmax = TRUE, r = 5)
-GPD1
-plot(GPD1)
-
-GPD2 <- fpot(SA, u2, cmax = TRUE, r = 5)
-GPD2
-plot(GPD2)
-
-# Diagnostiques graphique pas terrible
-
 ################################## Station SB ##################################
 
 # plot(SA, SB) # long a produire
@@ -295,72 +271,6 @@ gum.diag(maxB2_gum) # Retrun level et Quantile plot moins convaincants
 - 2 * (maxB2_GEV1$nllh - maxB2_gum$nllh) <= qchisq(0.95, 1)
 # On rejette gamma = 0
 
-#### Niveaux de retour ####
-
-# Max annuels
-
-# Quantiles des max annuels
-
-# 100 ans
-quant(maxB1_GEV1, q1, mu3, sigma3, gamma3, alpha)
-
-quant100_B <- fgev(maxB1, prob = q1)
-
-quant100_B$estimate[1]
-c(quant100_B$estimate[1] - 1.96 * quant100_B$std.err[1],
-  quant100_B$estimate[1] + 1.96 * quant100_B$std.err[1])
-
-# 500 ans
-quant(maxB1_GEV1, q2, mu3, sigma3, gamma3, alpha)
-
-quant500_B <- fgev(maxB1, prob = q2)
-
-quant500_B$estimate[1]
-c(quant500_B$estimate[1] - 1.96 * quant500_B$std.err[1],
-  quant500_B$estimate[1] + 1.96 * quant500_B$std.err[1])
-
-# 1000 ans
-quant(maxB1_GEV1, q3, mu3, sigma3, gamma3, alpha)
-
-quant1000_B <- fgev(maxB1, prob = q3)
-
-quant1000_B$estimate[1]
-c(quant1000_B$estimate[1] - 1.96 * quant1000_B$std.err[1],
-  quant1000_B$estimate[1] + 1.96 * quant1000_B$std.err[1])
-
-# Max mensuels
-
-# Quantiles des max mensuels
-
-# 100 ans
-quant(maxB2_GEV1, q1, mu4, sigma4, gamma4, alpha)
-
-quant100_B <- fgev(maxB2, prob = q1)
-
-quant100_B$estimate[1]
-c(quant100_B$estimate[1] - 1.96 * quant100_B$std.err[1],
-  quant100_B$estimate[1] + 1.96 * quant100_B$std.err[1])
-
-# 500 ans
-quant(maxB2_GEV1, q2, mu4, sigma4, gamma4, alpha)
-
-quant500_B <- fgev(maxB2, prob = q2)
-
-quant500_B$estimate[1]
-c(quant500_B$estimate[1] - 1.96 * quant500_B$std.err[1],
-  quant500_B$estimate[1] + 1.96 * quant500_B$std.err[1])
-
-# 1000 ans
-quant(maxB2_GEV1, q3, mu4, sigma4, gamma4, alpha)
-
-quant1000_B <- fgev(maxB2, prob = q3)
-
-quant1000_B$estimate[1]
-c(quant1000_B$estimate[1] - 1.96 * quant1000_B$std.err[1],
-  quant1000_B$estimate[1] + 1.96 * quant1000_B$std.err[1])
-
-# Les quantiles des max mensuels sont plus élevés que ceux des max annuels
-
 #### Etude de la dépendance ####
 
 chiplot(cbind(SA, SB))
@@ -368,16 +278,16 @@ chiplot(cbind(SA, SB))
 # plot 2 chi_bar : plus petit que 1 (confirme l'indépendance asymptotique)
 
 #### Transformation des données en Fréchet 1 ####
-maxA2_F <- qgev(pgev(maxA2,loc = 3.9868599, scale = 1.1734179 ,
-                            shape = -0.1526229),
-                  loc = 1, shape = 1, scale = 1)
-maxB2_F <- qgev(pgev(maxB2, loc = 1.43213305, scale = 0.71594773,
-                            shape = -0.02667831),
-                  loc = 1, shape = 1, scale = 1)
+maxA2_F <- qgev(pgev(maxA2,loc = mu2, scale = sigma2 ,
+                     shape = gamma2),
+                loc = 1, shape = 1, scale = 1)
+maxB2_F <- qgev(pgev(maxB2, loc = mu4, scale = sigma4,
+                     shape = gamma4),
+                loc = 1, shape = 1, scale = 1)
 
 # Représentation graphique
 plot(maxA2_F, maxB2_F)
-# On voit très nettement un indépendance asymptotique.
+# On voit plus ou moins un indépendance asymptotique.
 
 # Etude plus poussée de la dépendance avec A
 abvnonpar(data = cbind(maxA2, maxB2), plot = TRUE, col = "red")
@@ -387,51 +297,39 @@ abvnonpar(data = cbind(maxA2, maxB2), plot = FALSE) * 2
 # Indépendance assez logique puisque stations distantes d'environ 264km
 
 # Fit d'un modèle
-fbvevd(cbind(maxA2, maxB2), model = "alog")
-MGEV1 <- fbvevd(cbind(maxA2, maxB2), model = "log") # meilleur AIC
+fbvevd(cbind(maxA2, maxB2), model = "alog") # AIC = 3580.652
+fbvevd(cbind(maxA2, maxB2), model = "log") # AIC = 3572.707
+MGEV1 <- fbvevd(cbind(maxA2, maxB2), model = "hr") # AIC = 3568.867
 MGEV1
 
 #### Quantile conditionnel ####
 
-# On suppose qu'on a l'indépendance asymptotique, donc p ~ G^-1_X((1-p)^n)
-y <- 4:9
-p <- 10^-c(1:10)
+quant_cond(MGEV1, 4, 10^(-5), 624, dep = FALSE, cond.mar2 = FALSE)
 
+# On suppose qu'on a l'indépendance asymptotique, donc p ~ G^-1_X((1-p)^n)
+p <- 10^-seq(1,10, by = 0.1)
 z_p <- c()
 k <- 0
 for (j in p) {
   k <- k + 1
-  z_p[k] <- quant_cond(MGEV1, i, j, n2, dep = FALSE, cond.mar2 = FALSE)
+  z_p[k] <- quant_cond(MGEV1, 4, j, n2, dep = FALSE, cond.mar2 = FALSE)
 }
-plot(z_p, type = "o", xlab = "Probabiltié", ylab = "Quantile",
+plot(seq(1,10, by = 0.1), z_p, type = "l", xlab = "Probabiltié", ylab = "Quantile",
      main = paste("Quantile conditionnel en cas d'indépendance asymptotique"))
 
 
-quant_cond(MGEV1, 10, 10^(-10), 624, dep = FALSE, cond.mar2 = FALSE)
+################################## Station SC ##################################
 
-l <- 0
-for (i in y){
-  l <- l + 1
-  z_p <- c()
-  k <- 0
-  for (j in p) {
-    k <- k + 1
-    z_p[k] <- quant_cond(MGEV1, i, j, n2, dep = FALSE, cond.mar2 = FALSE)
-  }
-  plot(z_p, xlab = "Probabiltié", ylab = "Quantile",
-       main = paste("Quantile conditionnel en quand Y >",y[l]))
-}
+# SC (station 1) plus distante de SA que SB
 
-#### SA et SC ####
-
-SC <- donneesVague$station11 
+SC <- donneesVague$station1
 
 # Etude de la dépendance
 
 plot(SA[1:5000], SC[1:5000])
-# On a l'impression qu'il y a une dépendance dans les données
+# On voit une dépendance forte
 
-#### Extraction des maximas pour la station SB ####
+#### Extraction des maximas pour la station SC ####
 
 df3 <- data.frame(date = donneesVague$date, station = SC)
 
@@ -461,35 +359,146 @@ plot(maxA2, maxC2)
 #### Etude de la dépendance ####
 
 chiplot(cbind(SA, SC))
-# plot 1 chi : > 0 (indique une dépendance asymptotique)
-# plot 2 chi_bar : semble tendre vers 1 (confirme la dépendance asymptotique)
+# plot 1 chi = 1 (indique une dépendance asymptotique)
+# plot 2 chi_bar = 1 (confirme la dépendance asymptotique)
 
 #### Transformation des données en Fréchet 1 ####
 maxC2_GEV1 <- gev.fit(maxC2)
+mu5 <- maxC2_GEV1$mle[1]
+sigma5 <- maxC2_GEV1$mle[2]
+gamma5 <- maxC2_GEV1$mle[3]
 
 IC_GEV(maxC2_GEV1, alpha = 0.05) # 0 n'est pas de l'IC de gamma
 
 # tendance ? Non
 maxC2_GEV0 <- gev.fit(maxC2, ydat = mat2, mul = 1)
--2*(maxC2_GEV0$nllh - maxC2_GEV1$nllh) <= qchisq(p = 0.95, df = 1)
+-2*(maxC2_GEV0$nllh - maxC2_GEV1$nllh) <= qchisq(p = 0.99, df = 1)
 
-maxC2_F <- qgev(pgev(maxC2, loc = 1.6305071, scale = 0.5702879,
-                  shape = 0.1089567),
-             loc = 1, shape = 1, scale = 1)
+maxC2_F <- qgev(pgev(maxC2, loc = mu5, scale = sigma5,
+                     shape = gamma5),
+                loc = 1, shape = 1, scale = 1)
 
 # Représentation graphique
-# plot(SA_F, SB_F) # long à produire
 plot(maxA2_F, maxC2_F)
-# On voit très nettement un indépendance asymptotique.
+# On voit une dépendance claire
 
 # Etude plus poussée de la dépendance avec A
-abvnonpar(data = cbind(maxA2, maxB2), plot = TRUE, col = "red")
+abvnonpar(data = cbind(maxA2, maxC2), plot = TRUE, col = "red")
 
-abvnonpar(data = cbind(maxA2, maxB2), plot = FALSE) * 2
-# theta est proche de 2 donc on à bien de l'indépendance asymptotique.
-# Indépendance assez logique puisque stations distantes d'environ 264km
+abvnonpar(data = cbind(maxA2, maxC2), plot = FALSE) * 2
+# theta est proche de 1 donc on à bien de la dépendance asymptotique.
 
 # Fit d'un modèle
-fbvevd(cbind(maxA2, maxB2), model = "alog")
-MGEV1 <- fbvevd(cbind(maxA2, maxB2), model = "log") # meilleur AIC
-MGEV1
+fbvevd(cbind(maxA2, maxC2), model = "alog", std.err = FALSE) # AIC = 1067.027
+MGEV2 <- fbvevd(cbind(maxA2, maxC2), model = "log") # AIC = 886.8991
+fbvevd(cbind(maxA2, maxC2), model = "hr") # AIC = 1089.506
+MGEV2
+
+#### Quantile conditionnel ####
+
+quant_cond(MGEV2, 8, 10^-10, n2, dep = TRUE, cond.mar2 = FALSE)
+
+y <- 4:10
+p <- 10^-seq(1,10, by = 0.1)
+l <- 0
+for (i in y){
+  l <- l + 1
+  z_p <- c()
+  k <- 0
+  for (j in p) {
+    k <- k + 1
+    z_p[k] <- quant_cond(MGEV2, i, 10^(-j), n2, dep = TRUE, cond.mar2 = FALSE)
+  }
+  plot(seq(1,10, by = 0.1), z_p, xlab = expression(paste("Probabiltié", 10^-x)), ylab = "Quantile",
+       main = paste("Quantile conditionnel en quand Y >",y[l]), type = "l")
+}
+
+################################## Station SD ################################## 
+# SD (station 4) plus proche de SA que SB
+
+SD <- donneesVague$station4
+
+# Etude de la dépendance
+
+plot(SA[1:5000], SD[1:5000])
+
+#### Extraction des maximas pour la station SD ####
+
+df4 <- data.frame(date = donneesVague$date, station = SD)
+
+# Extraction de l'année
+df4$year <- format(as.Date(df4$date, format="%Y-%m-%d"),"%Y")
+# Extraction du mois
+df4$month <- format(as.Date(df4$date, format = "%Y-%m-%d"), "%m")
+
+# Max par an
+maxD1 <- df4 %>% group_by(year) %>% summarise(Max = max(station)) %>% pull()
+
+# Représentation graphique
+plot(1961:2012, maxD1, xlab = "Années", ylab = "Hauteur mesurée",
+     main = "Hauteur maximales des vagues par années")
+
+# Max par mois
+maxD2 <- df4 %>% group_by(year, month, .add = TRUE) %>%
+  summarise(Max = max(station)) %>% pull()
+
+# Représentation graphique
+plot(maxD2, xlab = "Mois", ylab = "Hauteur mesurée",
+     main = "Hauteur maximales des vagues par mois")
+
+plot(maxA1, maxD1)
+plot(maxA2, maxD2)
+
+#### Etude de la dépendance ####
+
+chiplot(cbind(SA, SD))
+# plot 1 chi semble tendre vers 0 (indique une indépendance asymptotique)
+# plot 2 chi_bar < 1 (confirme l'indépendance asymptotique)
+
+#### Transformation des données en Fréchet 1 ####
+maxD2_GEV1 <- gev.fit(maxD2)
+mu6 <- maxD2_GEV1$mle[1]
+sigma6 <- maxD2_GEV1$mle[2]
+gamma6 <- maxD2_GEV1$mle[3]
+
+IC_GEV(maxD2_GEV1, alpha = 0.05) # 0 n'est pas de l'IC de gamma
+
+# tendance ? Non
+maxD2_GEV0 <- gev.fit(maxD2, ydat = mat2, mul = 1)
+-2*(maxD2_GEV0$nllh - maxD2_GEV1$nllh) <= qchisq(p = 0.99, df = 1)
+
+maxD2_F <- qgev(pgev(maxD2, loc = mu6, scale = sigma6,
+                     shape = gamma6),
+                loc = 1, shape = 1, scale = 1)
+
+# Représentation graphique
+plot(maxA2_F, maxD2_F)
+# On voit pas grand chose
+
+# Etude plus poussée de la dépendance avec A
+abvnonpar(data = cbind(maxA2, maxD2), plot = TRUE, col = "red")
+
+abvnonpar(data = cbind(maxA2, maxD2), plot = FALSE) * 2
+# theta est proche de 2 donc par sur de l'indépendance asymptotique.
+
+# Fit d'un modèle
+fbvevd(cbind(maxA2, maxD2), model = "alog", std.err = FALSE) # AIC = 3590.212
+fbvevd(cbind(maxA2, maxD2), model = "log") # AIC = 3581.97
+MGEV3 <- fbvevd(cbind(maxA2, maxD2), model = "hr") # AIC = 3565.23
+MGEV3
+
+#### Quantile conditionnel ####
+
+quant_cond(MGEV3, 4, 10^-10, n2, dep = FALSE, cond.mar2 = FALSE)
+
+p <- 10^-seq(1,10, by = 0.1)
+z_p <- c()
+k <- 0
+for (j in p) {
+  k <- k + 1
+  z_p[k] <- quant_cond(MGEV3, 4, j, n2, dep = FALSE, cond.mar2 = FALSE)
+}
+plot(seq(1,10, by = 0.1), z_p, xlab = expression(paste("Probabiltié", 10^-x)),
+     ylab = "Quantile",
+     main = paste("Quantile conditionnel dans le cas d'indépendance"),
+     type = "l")

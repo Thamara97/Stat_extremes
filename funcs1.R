@@ -40,6 +40,7 @@ IC_GEV <- function(data, alpha) {
 quant <- function(gev, q, mu, sigma, gama, alpha) {
   ## Calcul des niveaux de retour et leur intervalle de confiance
   
+  # Entrée
   # gev : objet gev.fit
   # q : probabilité qu'un max dépasse le niveau de retour
   #     associé à la période de retour 1/q
@@ -47,6 +48,9 @@ quant <- function(gev, q, mu, sigma, gama, alpha) {
   # sigma : paramètre de dispersion
   # gama : paramètre de forme
   # alpha : niveaux de l'intervalle de confiance
+  
+  # Sortie
+  # x_q : niveau de retour
   
   yq <- -log(1-q)
   xq <- mu - (sigma / gama) * (1 - yq^(-gama)) 
