@@ -171,7 +171,7 @@ MGEV1 <- fbvevd(cbind(maxA, maxB), model = "hr") # AIC = 217.724
 
 #### Quantile conditionnel ####
 
-quant_cond(MGEV1, 4, 10^(-5), n, dep = FALSE, cond.mar2 = FALSE)
+quant_cond(MGEV1, 4, 10^(-10), n, dep = FALSE, cond.mar2 = FALSE)
 
 p <- 10^-seq(1,10, by = 0.1)
 z_p <- c()
@@ -181,10 +181,10 @@ for (j in p) {
   z_p[k] <- quant_cond(MGEV1, 4, j, n, dep = FALSE, cond.mar2 = FALSE)
 }
 
-plot(seq(1,10, by = 0.1), z_p, type = "l",
-     xlab = expression(10^-x),
+plot(cbind(p, z_p), type = "l",
+     xlab = "Probabilité",
      ylab = "Quantile",
-     main = "Quantile conditionnel en cas d'indépendance asymptotique")
+     main = "Quantiles conditionnels de SB sachant SA > 4")
 
 ################################## Station SC ##################################
 
@@ -248,22 +248,18 @@ MGEV2
 
 #### Quantile conditionnel ####
 
-quant_cond(MGEV2, 8, 10^-10, n, dep = TRUE, cond.mar2 = FALSE)
+quant_cond(MGEV2, 4, 10^-10, n, dep = TRUE, cond.mar2 = FALSE)
 
-y <- 4
 p <- 10^-seq(1,10, by = 0.1)
-l <- 0
-for (i in y){
-  l <- l + 1
-  z_p <- c()
-  k <- 0
-  for (j in p) {
-    k <- k + 1
-    z_p[k] <- quant_cond(MGEV2, i, 10^(-j), n, dep = TRUE, cond.mar2 = FALSE)
-  }
-  plot(seq(1,10, by = 0.1), z_p, xlab = expression(10^-x), ylab = "Quantile",
-       main = paste("Quantile conditionnel en quand Y >",y[l]), type = "l")
+z_p <- c()
+k <- 0
+for (j in p) {
+  k <- k + 1
+  z_p[k] <- quant_cond(MGEV2, 4, j, n, dep = TRUE, cond.mar2 = FALSE)
 }
+plot(p, z_p, xlab = "Probabilité", ylab = "Quantile",
+     main = paste("Quantiles conditionnels de SC sachant que SA > 4"),
+     type = "l")
 
 ################################## Station SD ################################## 
 
@@ -335,7 +331,7 @@ for (j in p) {
   k <- k + 1
   z_p[k] <- quant_cond(MGEV3, 4, j, n, dep = FALSE, cond.mar2 = FALSE)
 }
-plot(seq(1,10, by = 0.1), z_p, xlab = expression(10^-x),
+plot(p, z_p, xlab = "Probabilité",
      ylab = "Quantile",
-     main = "Quantile conditionnel dans le cas d'indépendance asymptotique",
+     main = "Quantiles conditionnels de SD sachant que SA > 4",
      type = "l")
