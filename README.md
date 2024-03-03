@@ -1,4 +1,9 @@
-# Stat_extremes
+# Statistique des extrêmes
 Projet de l'UE Statistique des évènements extrêmes et applications
 
-Lien vers le rapport Overleaf (en mode édition) : https://www.overleaf.com/9344712749sryfbmdthrgj#c420e3
+Le fichier functions.R contient certaines des fonctions utilisée dans le code source.
+Le fichier script.R contient le code source.
+
+# Membre du groupe 4 :
+RENOIR Thamara
+ZULEWSKI Lilou
