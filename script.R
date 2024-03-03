@@ -17,6 +17,7 @@ SA <- donneesVague$station6
 head(SA)
 m <- length(SA)
 
+################################### Partie 1 ###################################
 ################################## Station SA ##################################
 
 #### Extraction des maximas annuels ####
@@ -94,6 +95,7 @@ quant500 <- fgev(maxA, prob = q2)
 quant(maxA_GEV1, q3, alpha)
 quant1000 <- fgev(maxA, prob = q3)
 
+################################### Partie 2 ###################################
 ################################## Station SB ##################################
 
 SB <- donneesVague$station12
