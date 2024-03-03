@@ -33,8 +33,16 @@ n <- length(maxA)
 # Nombre de mesures par an
 eff <- df %>% group_by(year) %>% count() %>% pull()
 # Représentation graphique des max
-plot(1961:2012, maxA, xlab = "Années", ylab = "Hauteur mesurée",
-     main = "Hauteur maximales des vagues par années à la station 6 (SA)")
+maxima_annuels <- data.frame(maxima=maxA,
+                             date=1961:2012)
+
+ggplot(maxima_annuels, aes(x=date, y=maxima))+
+  geom_point(aes(y=maxima), color="black", pch=3, size=0.25)+
+  theme(strip.text.x=element_text(size=8),
+        plot.title=element_text(size=10, hjust=0.5, face="bold"))+
+  xlab("Année") +
+  ylab("Hauteur de vagues") +
+  labs(title="")
 
 #### Ajustement d'une GEV ####
 
