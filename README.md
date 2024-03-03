@@ -2,6 +2,7 @@
 Projet de l'UE Statistique des évènements extrêmes et applications
 
 Le fichier functions.R contient certaines des fonctions utilisée dans le code source.
+
 Le fichier script.R contient le code source.
 
 # Membres du groupe 4
